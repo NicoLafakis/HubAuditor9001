@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AuditType } from '@/types';
 
 interface AuditOption {
@@ -15,39 +15,38 @@ const auditOptions: AuditOption[] = [
   {
     id: 'contact-quality',
     name: 'Contact Data Quality',
-    description: 'Find duplicate contacts, missing info, and bad email addresses that could be hurting your outreach',
+    description: 'Analyze contact completeness and data accuracy',
     icon: '👤',
     available: true,
   },
   {
     id: 'pipeline-health',
     name: 'Deal Pipeline Health',
-    description: 'Discover stuck deals, missing forecasts, and gaps that could be costing you revenue',
+    description: 'Evaluate pipeline stages and deal progression',
     icon: '📊',
     available: true,
   },
   {
     id: 'company-enrichment',
     name: 'Company Enrichment',
-    description: 'Evaluate company data completeness and enrichment opportunities',
+    description: 'Assess company data completeness',
     icon: '🏢',
     available: false,
   },
   {
     id: 'lead-scoring',
-    name: 'Lead Scoring & Segmentation',
-    description: 'Assess lead scoring models and segmentation effectiveness',
+    name: 'Lead Scoring',
+    description: 'Review lead scoring effectiveness',
     icon: '🎯',
     available: false,
   },
-  {
-    id: 'sync-integrity',
-    name: 'Sync Integrity',
-    description: 'Check integration health and data synchronization status',
-    icon: '🔄',
-    available: false,
-  },
 ];
+
+interface SavedToken {
+  token_name: string;
+  token_type: string;
+  created_at: string;
+}
 
 interface AuditSelectorProps {
   onSelectAudit: (auditType: AuditType, hubspotToken: string) => void;
@@ -57,6 +56,30 @@ export default function AuditSelector({ onSelectAudit }: AuditSelectorProps) {
   const [selectedAudit, setSelectedAudit] = useState<AuditType | null>(null);
   const [hubspotToken, setHubspotToken] = useState('');
   const [showTokenInput, setShowTokenInput] = useState(false);
+  const [savedTokens, setSavedTokens] = useState<SavedToken[]>([]);
+  const [selectedSavedToken, setSelectedSavedToken] = useState('');
+  const [saveToken, setSaveToken] = useState(false);
+  const [tokenName, setTokenName] = useState('');
+  const [isLoadingTokens, setIsLoadingTokens] = useState(false);
+
+  useEffect(() => {
+    loadSavedTokens();
+  }, []);
+
+  const loadSavedTokens = async () => {
+    setIsLoadingTokens(true);
+    try {
+      const response = await fetch('/api/tokens');
+      if (response.ok) {
+        const data = await response.json();
+        setSavedTokens(data.tokens || []);
+      }
+    } catch (error) {
+      console.error('Error loading saved tokens:', error);
+    } finally {
+      setIsLoadingTokens(false);
+    }
+  };
 
   const handleAuditClick = (audit: AuditOption) => {
     if (!audit.available) return;
@@ -64,25 +87,63 @@ export default function AuditSelector({ onSelectAudit }: AuditSelectorProps) {
     setShowTokenInput(true);
   };
 
-  const handleStartAudit = () => {
-    if (selectedAudit && hubspotToken.trim()) {
-      onSelectAudit(selectedAudit, hubspotToken);
+  const handleStartAudit = async () => {
+    if (!selectedAudit) return;
+
+    let tokenToUse = hubspotToken;
+
+    // If using a saved token, fetch it
+    if (selectedSavedToken) {
+      try {
+        const response = await fetch(`/api/tokens/get?name=${encodeURIComponent(selectedSavedToken)}`);
+        if (response.ok) {
+          const data = await response.json();
+          tokenToUse = data.tokenValue;
+        } else {
+          alert('Failed to load saved token');
+          return;
+        }
+      } catch (error) {
+        alert('Error loading saved token');
+        return;
+      }
+    } else if (hubspotToken.trim()) {
+      // Save new token if requested
+      if (saveToken && tokenName.trim()) {
+        try {
+          await fetch('/api/tokens', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              tokenName: tokenName.trim(),
+              tokenValue: hubspotToken.trim(),
+              tokenType: 'hubspot',
+            }),
+          });
+          await loadSavedTokens();
+        } catch (error) {
+          console.error('Error saving token:', error);
+        }
+      }
+    } else {
+      return;
+    }
+
+    if (tokenToUse.trim()) {
+      onSelectAudit(selectedAudit, tokenToUse);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            Is Your HubSpot Healthy?
+          <h1 className="text-4xl font-bold mb-4" style={{ color: 'var(--foreground)' }}>
+            Select an Audit
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-4">
-            Get a free AI audit of your HubSpot in minutes. We'll find the issues, explain what they mean, and tell you exactly how to fix them.
-          </p>
-          <p className="text-sm text-gray-500 max-w-xl mx-auto">
-            No complex reports. No technical jargon. Just clear insights you can act on today.
+          <p className="text-lg max-w-2xl mx-auto" style={{ color: 'var(--muted-foreground)' }}>
+            Choose the type of audit you want to run on your HubSpot account
           </p>
         </div>
 
@@ -93,28 +154,39 @@ export default function AuditSelector({ onSelectAudit }: AuditSelectorProps) {
               key={audit.id}
               onClick={() => handleAuditClick(audit)}
               disabled={!audit.available}
-              className={`
-                text-left p-6 rounded-lg shadow-md transition-all transform hover:scale-105
-                ${
-                  audit.available
-                    ? 'bg-white hover:shadow-lg cursor-pointer'
-                    : 'bg-gray-200 cursor-not-allowed opacity-60'
+              className="text-left p-6 rounded-lg border transition-all"
+              style={{
+                background: audit.available ? 'var(--card-background)' : 'var(--muted)',
+                borderColor: selectedAudit === audit.id ? 'var(--primary)' : 'var(--card-border)',
+                borderWidth: selectedAudit === audit.id ? '2px' : '1px',
+                opacity: audit.available ? 1 : 0.5,
+                cursor: audit.available ? 'pointer' : 'not-allowed',
+              }}
+              onMouseEnter={(e) => {
+                if (audit.available) {
+                  e.currentTarget.style.borderColor = 'var(--primary)';
                 }
-                ${selectedAudit === audit.id ? 'ring-4 ring-blue-500' : ''}
-              `}
+              }}
+              onMouseLeave={(e) => {
+                if (audit.available && selectedAudit !== audit.id) {
+                  e.currentTarget.style.borderColor = 'var(--card-border)';
+                }
+              }}
             >
               <div className="flex items-start gap-4">
                 <div className="text-4xl">{audit.icon}</div>
                 <div className="flex-1">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--foreground)' }}>
                     {audit.name}
                     {!audit.available && (
-                      <span className="ml-2 text-xs font-normal text-gray-500">
+                      <span className="ml-2 text-xs font-normal" style={{ color: 'var(--muted-foreground)' }}>
                         (Coming Soon)
                       </span>
                     )}
                   </h3>
-                  <p className="text-gray-600 text-sm">{audit.description}</p>
+                  <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
+                    {audit.description}
+                  </p>
                 </div>
               </div>
             </button>
@@ -123,63 +195,145 @@ export default function AuditSelector({ onSelectAudit }: AuditSelectorProps) {
 
         {/* Token Input */}
         {showTokenInput && (
-          <div className="bg-white rounded-lg shadow-lg p-8 max-w-2xl mx-auto">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-3">
-              Connect Your HubSpot Account
+          <div
+            className="rounded-lg p-8 max-w-2xl mx-auto border"
+            style={{
+              background: 'var(--card-background)',
+              borderColor: 'var(--card-border)',
+            }}
+          >
+            <h2 className="text-2xl font-semibold mb-3" style={{ color: 'var(--foreground)' }}>
+              HubSpot Access Token
             </h2>
-            <p className="text-gray-600 mb-6">
-              To analyze your HubSpot data, we need a secure access key. Don't worry - this is safe and you can revoke access anytime.
+            <p className="mb-6" style={{ color: 'var(--muted-foreground)' }}>
+              Select a saved token or enter a new one to continue
             </p>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
-                <span>📋</span> Quick Setup (2 minutes)
-              </h3>
-              <ol className="text-sm text-blue-800 space-y-2 ml-6 list-decimal">
-                <li>Go to your HubSpot Settings (click the gear icon)</li>
-                <li>Navigate to: Integrations → Private Apps</li>
-                <li>Click "Create private app" (or use an existing one)</li>
-                <li>Give it read access to Contacts, Deals, and Companies</li>
-                <li>Copy the access token and paste it below</li>
-              </ol>
-              <a
-                href="https://knowledge.hubspot.com/integrations/how-do-i-get-my-hubspot-api-key"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline text-sm mt-3 inline-block font-medium"
-              >
-                → View detailed walkthrough with screenshots
-              </a>
-            </div>
+            {savedTokens.length > 0 && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--foreground)' }}>
+                  Use Saved Token
+                </label>
+                <select
+                  value={selectedSavedToken}
+                  onChange={(e) => {
+                    setSelectedSavedToken(e.target.value);
+                    if (e.target.value) {
+                      setHubspotToken('');
+                    }
+                  }}
+                  className="w-full px-4 py-2 rounded-md border"
+                  style={{
+                    background: 'var(--input-background)',
+                    border: '1px solid var(--input-border)',
+                    color: 'var(--foreground)',
+                  }}
+                >
+                  <option value="">-- Select a saved token --</option>
+                  {savedTokens.map((token) => (
+                    <option key={token.token_name} value={token.token_name}>
+                      {token.token_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Your HubSpot Access Token
-            </label>
-            <input
-              type="password"
-              value={hubspotToken}
-              onChange={(e) => setHubspotToken(e.target.value)}
-              placeholder="Paste your access token here"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2 text-base"
-            />
-            <p className="text-xs text-gray-500 mb-6">
-              🔒 Your token is encrypted and never stored. We only use it to read your HubSpot data during this audit.
-            </p>
+            {!selectedSavedToken && (
+              <>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-2" style={{ color: 'var(--foreground)' }}>
+                    Enter HubSpot Token
+                  </label>
+                  <input
+                    type="password"
+                    value={hubspotToken}
+                    onChange={(e) => setHubspotToken(e.target.value)}
+                    placeholder="Paste your access token here"
+                    className="w-full px-4 py-2 rounded-md border"
+                    style={{
+                      background: 'var(--input-background)',
+                      border: '1px solid var(--input-border)',
+                      color: 'var(--foreground)',
+                    }}
+                  />
+                </div>
+
+                {hubspotToken && (
+                  <div className="mb-6">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={saveToken}
+                        onChange={(e) => setSaveToken(e.target.checked)}
+                        className="rounded"
+                      />
+                      <span className="text-sm" style={{ color: 'var(--foreground)' }}>
+                        Save this token for future use
+                      </span>
+                    </label>
+                    {saveToken && (
+                      <input
+                        type="text"
+                        value={tokenName}
+                        onChange={(e) => setTokenName(e.target.value)}
+                        placeholder="Token name (e.g., 'Main Account')"
+                        className="w-full px-4 py-2 rounded-md border mt-2"
+                        style={{
+                          background: 'var(--input-background)',
+                          border: '1px solid var(--input-border)',
+                          color: 'var(--foreground)',
+                        }}
+                      />
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+
             <div className="flex gap-3">
               <button
                 onClick={handleStartAudit}
-                disabled={!hubspotToken.trim()}
-                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                disabled={!selectedSavedToken && !hubspotToken.trim()}
+                className="flex-1 px-6 py-3 rounded-lg font-medium transition-colors"
+                style={{
+                  background: (!selectedSavedToken && !hubspotToken.trim()) ? 'var(--muted)' : 'var(--primary)',
+                  color: '#ffffff',
+                  cursor: (!selectedSavedToken && !hubspotToken.trim()) ? 'not-allowed' : 'pointer',
+                }}
+                onMouseEnter={(e) => {
+                  if (selectedSavedToken || hubspotToken.trim()) {
+                    e.currentTarget.style.background = 'var(--primary-hover)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (selectedSavedToken || hubspotToken.trim()) {
+                    e.currentTarget.style.background = 'var(--primary)';
+                  }
+                }}
               >
-                🚀 Start My Audit
+                Start Audit
               </button>
               <button
                 onClick={() => {
                   setShowTokenInput(false);
                   setSelectedAudit(null);
                   setHubspotToken('');
+                  setSelectedSavedToken('');
+                  setSaveToken(false);
+                  setTokenName('');
                 }}
-                className="px-6 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                className="px-6 py-3 rounded-lg font-medium border transition-colors"
+                style={{
+                  borderColor: 'var(--card-border)',
+                  color: 'var(--foreground)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'var(--muted)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                }}
               >
                 Cancel
               </button>

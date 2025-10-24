@@ -3,7 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AuditSelector from '@/components/AuditSelector';
+import Header from '@/components/Header';
 import { AuditType } from '@/types';
+
+// Force dynamic rendering to avoid SSR issues with ThemeProvider
+export const dynamic = 'force-dynamic';
 
 export default function Home() {
   const router = useRouter();
@@ -21,11 +25,15 @@ export default function Home() {
 
   return (
     <>
+      <Header />
       {isSubmitting ? (
-        <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="flex items-center justify-center min-h-screen" style={{ background: 'var(--background)' }}>
           <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-blue-600 mb-4"></div>
-            <p className="text-gray-600">Starting audit...</p>
+            <div
+              className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-t-transparent mb-4"
+              style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }}
+            ></div>
+            <p style={{ color: 'var(--muted-foreground)' }}>Starting audit...</p>
           </div>
         </div>
       ) : (
