@@ -31,7 +31,7 @@ export default function AuditPage() {
       const hubspotToken = sessionStorage.getItem('hubspotToken');
 
       if (!hubspotToken) {
-        setError('No HubSpot token found. Please start from the home page.');
+        setError('Oops! It looks like you navigated here directly. Please go back to the home page and start a new audit.');
         setLoading(false);
         return;
       }
@@ -74,7 +74,7 @@ export default function AuditPage() {
 
   // Loading state
   if (loading) {
-    return <LoadingState message="Fetching data from HubSpot..." />;
+    return <LoadingState message="Analyzing Your HubSpot..." />;
   }
 
   // Error state
@@ -84,7 +84,7 @@ export default function AuditPage() {
 
   // No data state
   if (!auditData) {
-    return <ErrorDisplay error="No audit data available" />;
+    return <ErrorDisplay error="Hmm, we didn't get any results from your audit. Please try again." />;
   }
 
   // Success state - show results

@@ -8,7 +8,7 @@ interface MetricsSidebarProps {
 export default function MetricsSidebar({ metricGroups }: MetricsSidebarProps) {
   return (
     <div className="w-full lg:w-96 bg-gray-50 border-r border-gray-200 p-6 overflow-y-auto">
-      <h2 className="text-xl font-bold text-gray-900 mb-6">Quantitative Metrics</h2>
+      <h2 className="text-xl font-bold text-gray-900 mb-6">Your HubSpot Health</h2>
 
       <div className="space-y-6">
         {metricGroups.map((group, groupIndex) => (
