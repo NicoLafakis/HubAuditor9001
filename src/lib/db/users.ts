@@ -1,6 +1,7 @@
 import { getDatabase } from './database';
 import bcrypt from 'bcryptjs';
 import { encryptToken, decryptToken } from '../encryption';
+import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
 export interface User {
   id: number;
@@ -25,20 +26,18 @@ export interface UserToken {
  */
 export async function createUser(email: string, password: string, name?: string): Promise<User | null> {
   try {
-    const db = getDatabase();
+    const pool = getDatabase();
 
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const stmt = db.prepare(`
-      INSERT INTO users (email, password_hash, name)
-      VALUES (?, ?, ?)
-    `);
-
-    const result = stmt.run(email, passwordHash, name || null);
+    const [result] = await pool.execute<ResultSetHeader>(
+      'INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)',
+      [email, passwordHash, name || null]
+    );
 
     // Return the created user
-    return getUserById(result.lastInsertRowid as number);
+    return getUserById(result.insertId);
   } catch (error) {
     console.error('Error creating user:', error);
     return null;
@@ -50,19 +49,18 @@ export async function createUser(email: string, password: string, name?: string)
  */
 export async function verifyUser(email: string, password: string): Promise<User | null> {
   try {
-    const db = getDatabase();
+    const pool = getDatabase();
 
-    const stmt = db.prepare(`
-      SELECT id, email, password_hash, name, created_at, updated_at
-      FROM users
-      WHERE email = ?
-    `);
+    const [rows] = await pool.execute<RowDataPacket[]>(
+      'SELECT id, email, password_hash, name, created_at, updated_at FROM users WHERE email = ?',
+      [email]
+    );
 
-    const row = stmt.get(email) as any;
-
-    if (!row) {
+    if (rows.length === 0) {
       return null;
     }
+
+    const row = rows[0];
 
     // Verify password
     const isValid = await bcrypt.compare(password, row.password_hash);
@@ -88,21 +86,20 @@ export async function verifyUser(email: string, password: string): Promise<User 
 /**
  * Get user by ID
  */
-export function getUserById(id: number): User | null {
+export async function getUserById(id: number): Promise<User | null> {
   try {
-    const db = getDatabase();
+    const pool = getDatabase();
 
-    const stmt = db.prepare(`
-      SELECT id, email, name, created_at, updated_at
-      FROM users
-      WHERE id = ?
-    `);
+    const [rows] = await pool.execute<RowDataPacket[]>(
+      'SELECT id, email, name, created_at, updated_at FROM users WHERE id = ?',
+      [id]
+    );
 
-    const row = stmt.get(id) as any;
-
-    if (!row) {
+    if (rows.length === 0) {
       return null;
     }
+
+    const row = rows[0];
 
     return {
       id: row.id,
@@ -120,21 +117,20 @@ export function getUserById(id: number): User | null {
 /**
  * Get user by email
  */
-export function getUserByEmail(email: string): User | null {
+export async function getUserByEmail(email: string): Promise<User | null> {
   try {
-    const db = getDatabase();
+    const pool = getDatabase();
 
-    const stmt = db.prepare(`
-      SELECT id, email, name, created_at, updated_at
-      FROM users
-      WHERE email = ?
-    `);
+    const [rows] = await pool.execute<RowDataPacket[]>(
+      'SELECT id, email, name, created_at, updated_at FROM users WHERE email = ?',
+      [email]
+    );
 
-    const row = stmt.get(email) as any;
-
-    if (!row) {
+    if (rows.length === 0) {
       return null;
     }
+
+    const row = rows[0];
 
     return {
       id: row.id,
@@ -152,29 +148,28 @@ export function getUserByEmail(email: string): User | null {
 /**
  * Save an encrypted token for a user
  */
-export function saveUserToken(
+export async function saveUserToken(
   userId: number,
   tokenName: string,
   token: string,
   tokenType: string = 'hubspot'
-): boolean {
+): Promise<boolean> {
   try {
-    const db = getDatabase();
+    const pool = getDatabase();
 
     // Encrypt the token before storing
     const encryptedToken = encryptToken(token);
 
-    const stmt = db.prepare(`
-      INSERT INTO user_tokens (user_id, token_name, encrypted_token, token_type)
-      VALUES (?, ?, ?, ?)
-      ON CONFLICT(user_id, token_name)
-      DO UPDATE SET
-        encrypted_token = excluded.encrypted_token,
-        token_type = excluded.token_type,
-        updated_at = CURRENT_TIMESTAMP
-    `);
+    await pool.execute(
+      `INSERT INTO user_tokens (user_id, token_name, encrypted_token, token_type)
+       VALUES (?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE
+         encrypted_token = VALUES(encrypted_token),
+         token_type = VALUES(token_type),
+         updated_at = CURRENT_TIMESTAMP`,
+      [userId, tokenName, encryptedToken, tokenType]
+    );
 
-    stmt.run(userId, tokenName, encryptedToken, tokenType);
     return true;
   } catch (error) {
     console.error('Error saving user token:', error);
@@ -185,24 +180,21 @@ export function saveUserToken(
 /**
  * Get and decrypt a user's token
  */
-export function getUserToken(userId: number, tokenName: string): string | null {
+export async function getUserToken(userId: number, tokenName: string): Promise<string | null> {
   try {
-    const db = getDatabase();
+    const pool = getDatabase();
 
-    const stmt = db.prepare(`
-      SELECT encrypted_token
-      FROM user_tokens
-      WHERE user_id = ? AND token_name = ?
-    `);
+    const [rows] = await pool.execute<RowDataPacket[]>(
+      'SELECT encrypted_token FROM user_tokens WHERE user_id = ? AND token_name = ?',
+      [userId, tokenName]
+    );
 
-    const row = stmt.get(userId, tokenName) as any;
-
-    if (!row) {
+    if (rows.length === 0) {
       return null;
     }
 
     // Decrypt the token before returning
-    return decryptToken(row.encrypted_token);
+    return decryptToken(rows[0].encrypted_token);
   } catch (error) {
     console.error('Error getting user token:', error);
     return null;
@@ -212,16 +204,15 @@ export function getUserToken(userId: number, tokenName: string): string | null {
 /**
  * Delete a user's token
  */
-export function deleteUserToken(userId: number, tokenName: string): boolean {
+export async function deleteUserToken(userId: number, tokenName: string): Promise<boolean> {
   try {
-    const db = getDatabase();
+    const pool = getDatabase();
 
-    const stmt = db.prepare(`
-      DELETE FROM user_tokens
-      WHERE user_id = ? AND token_name = ?
-    `);
+    await pool.execute(
+      'DELETE FROM user_tokens WHERE user_id = ? AND token_name = ?',
+      [userId, tokenName]
+    );
 
-    stmt.run(userId, tokenName);
     return true;
   } catch (error) {
     console.error('Error deleting user token:', error);
@@ -232,17 +223,20 @@ export function deleteUserToken(userId: number, tokenName: string): boolean {
 /**
  * Get all token names for a user (without decrypting)
  */
-export function getUserTokenList(userId: number): Array<{ token_name: string; token_type: string; created_at: string }> {
+export async function getUserTokenList(userId: number): Promise<Array<{ token_name: string; token_type: string; created_at: string }>> {
   try {
-    const db = getDatabase();
+    const pool = getDatabase();
 
-    const stmt = db.prepare(`
-      SELECT token_name, token_type, created_at
-      FROM user_tokens
-      WHERE user_id = ?
-    `);
+    const [rows] = await pool.execute<RowDataPacket[]>(
+      'SELECT token_name, token_type, created_at FROM user_tokens WHERE user_id = ?',
+      [userId]
+    );
 
-    return stmt.all(userId) as any[];
+    return rows.map(row => ({
+      token_name: row.token_name,
+      token_type: row.token_type,
+      created_at: row.created_at,
+    }));
   } catch (error) {
     console.error('Error getting user token list:', error);
     return [];

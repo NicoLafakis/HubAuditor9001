@@ -3,6 +3,9 @@ import { createHubSpotClient } from '@/lib/hubspot-client';
 import { createClaudeClient } from '@/lib/claude-client';
 import { calculateContactQualityMetrics, formatContactQualityMetrics } from '@/lib/audits/contact-quality';
 import { calculatePipelineHealthMetrics, formatPipelineHealthMetrics } from '@/lib/audits/pipeline-health';
+import { calculateCompanyEnrichmentMetrics, formatCompanyEnrichmentMetrics } from '@/lib/audits/company-enrichment';
+import { calculateLeadScoringMetrics, formatLeadScoringMetrics } from '@/lib/audits/lead-scoring';
+import { calculateSyncIntegrityMetrics, formatSyncIntegrityMetrics } from '@/lib/audits/sync-integrity';
 import { AuditRequest, AuditResponse, AuditType } from '@/types';
 
 export async function POST(request: NextRequest) {
@@ -58,9 +61,38 @@ export async function POST(request: NextRequest) {
         metricGroups = formatPipelineHealthMetrics(metrics);
         break;
 
+      case 'company-enrichment':
+        const companies = await hubspotClient.fetchCompanies();
+        const contactsForCompanies = await hubspotClient.fetchContacts(['associatedcompanyid']);
+        metrics = calculateCompanyEnrichmentMetrics(companies, contactsForCompanies);
+        metricGroups = formatCompanyEnrichmentMetrics(metrics);
+        break;
+
+      case 'lead-scoring':
+        const contactsForScoring = await hubspotClient.fetchContacts([
+          'email',
+          'firstname',
+          'lastname',
+          'lifecyclestage',
+          'hs_lead_score',
+          'hubspotscore',
+          'lastmodifieddate',
+          'createdate',
+        ]);
+        metrics = calculateLeadScoringMetrics(contactsForScoring);
+        metricGroups = formatLeadScoringMetrics(metrics);
+        break;
+
+      case 'sync-integrity':
+        // Note: Sync integrity requires special API access to integration endpoints
+        // For now, we'll pass undefined to get placeholder metrics
+        metrics = calculateSyncIntegrityMetrics();
+        metricGroups = formatSyncIntegrityMetrics(metrics);
+        break;
+
       default:
         return NextResponse.json(
-          { error: `This audit type is coming soon! For now, try the Contact Quality or Pipeline Health audits.` },
+          { error: `Unknown audit type: ${auditType}` },
           { status: 400 }
         );
     }

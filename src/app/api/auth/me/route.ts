@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user from database
-    const user = getUserById(payload.userId);
+    const user = await getUserById(payload.userId);
 
     if (!user) {
       return NextResponse.json(

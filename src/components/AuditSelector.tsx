@@ -29,16 +29,23 @@ const auditOptions: AuditOption[] = [
   {
     id: 'company-enrichment',
     name: 'Company Enrichment',
-    description: 'Assess company data completeness',
+    description: 'Assess company data completeness and relationships',
     icon: '🏢',
-    available: false,
+    available: true,
   },
   {
     id: 'lead-scoring',
-    name: 'Lead Scoring',
-    description: 'Review lead scoring effectiveness',
+    name: 'Lead Scoring & Segmentation',
+    description: 'Review lead scoring effectiveness and engagement',
     icon: '🎯',
-    available: false,
+    available: true,
+  },
+  {
+    id: 'sync-integrity',
+    name: 'Sync Integrity',
+    description: 'Monitor integration health and data sync status',
+    icon: '🔄',
+    available: true,
   },
 ];
 
