@@ -10,7 +10,7 @@ export function getDatabase(): mysql.Pool {
       host: process.env.DB_HOST || 'localhost',
       port: parseInt(process.env.DB_PORT || '3306'),
       user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
+      password: process.env.DB_PASS,
       database: process.env.DB_NAME,
       waitForConnections: true,
       connectionLimit: 10,
@@ -19,7 +19,7 @@ export function getDatabase(): mysql.Pool {
 
     // Validate required configuration
     if (!dbConfig.user || !dbConfig.password || !dbConfig.database) {
-      throw new Error('Missing required database configuration. Please check your .env file for DB_USER, DB_PASSWORD, and DB_NAME.');
+      throw new Error('Missing required database configuration. Please check your .env file for DB_USER, DB_PASS, and DB_NAME.');
     }
 
     pool = mysql.createPool(dbConfig);

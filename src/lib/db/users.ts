@@ -26,20 +26,28 @@ export interface UserToken {
  */
 export async function createUser(email: string, password: string, name?: string): Promise<User | null> {
   try {
+    console.log('[createUser] Starting user creation for:', email);
     const pool = getDatabase();
+    console.log('[createUser] Database pool obtained');
 
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
+    console.log('[createUser] Password hashed successfully');
 
     const [result] = await pool.execute<ResultSetHeader>(
       'INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)',
       [email, passwordHash, name || null]
     );
+    console.log('[createUser] User inserted with ID:', result.insertId);
 
     // Return the created user
     return getUserById(result.insertId);
   } catch (error) {
-    console.error('Error creating user:', error);
+    console.error('[createUser] Error creating user:', error);
+    if (error instanceof Error) {
+      console.error('[createUser] Error message:', error.message);
+      console.error('[createUser] Error stack:', error.stack);
+    }
     return null;
   }
 }
