@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { ClaudeAnalysisRequest } from '@/types';
 
-const DEFAULT_MODEL = 'claude-3-5-sonnet-20241022';
+const DEFAULT_MODEL = 'claude-sonnet-4-5-20250929';
 const MAX_TOKENS = 4096;
 
 export class ClaudeClient {
