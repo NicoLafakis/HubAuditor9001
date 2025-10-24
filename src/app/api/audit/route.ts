@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     // Validate inputs
     if (!auditType || !hubspotToken) {
       return NextResponse.json(
-        { error: 'Missing required fields: auditType and hubspotToken' },
+        { error: 'Oops! It looks like we\'re missing some information. Please make sure you\'ve selected an audit type and entered your HubSpot access token.' },
         { status: 400 }
       );
     }
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     const claudeApiKey = process.env.CLAUDE_API_KEY;
     if (!claudeApiKey) {
       return NextResponse.json(
-        { error: 'Claude API key not configured on server' },
+        { error: 'Hmm, there seems to be a configuration issue on our end. Please contact support or try again later.' },
         { status: 500 }
       );
     }
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     const hubspotConnected = await hubspotClient.testConnection();
     if (!hubspotConnected) {
       return NextResponse.json(
-        { error: 'Failed to connect to HubSpot. Please check your API token.' },
+        { error: 'We couldn\'t connect to your HubSpot account. Please double-check that your access token is correct and has the right permissions (Contacts, Deals, and Companies read access).' },
         { status: 401 }
       );
     }
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
       default:
         return NextResponse.json(
-          { error: `Audit type "${auditType}" is not yet supported` },
+          { error: `This audit type is coming soon! For now, try the Contact Quality or Pipeline Health audits.` },
           { status: 400 }
         );
     }
@@ -86,9 +86,20 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Audit API error:', error);
 
+    // Provide helpful error messages for common issues
+    let userMessage = 'Something unexpected happened while running your audit. Please try again in a moment.';
+
+    if (error.message?.includes('rate limit')) {
+      userMessage = 'Whoa! We\'re getting too many requests right now. Please wait a minute and try again.';
+    } else if (error.message?.includes('timeout')) {
+      userMessage = 'This is taking longer than expected. Your HubSpot might have a lot of data! Please try again.';
+    } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+      userMessage = 'We\'re having trouble connecting. Please check your internet connection and try again.';
+    }
+
     return NextResponse.json(
       {
-        error: 'Audit failed',
+        error: userMessage,
         message: error.message || 'An unexpected error occurred',
       },
       { status: 500 }

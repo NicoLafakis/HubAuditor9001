@@ -62,6 +62,7 @@ export interface MetricCard {
   percentage?: number;
   trend?: 'up' | 'down' | 'neutral';
   severity?: 'good' | 'warning' | 'critical';
+  description?: string; // Plain English explanation of what this metric means
 }
 
 export interface MetricGroup {

@@ -26,13 +26,10 @@ export default function AnalysisPanel({ analysis, auditType, timestamp }: Analys
           </p>
         </div>
 
-        {/* AI Analysis Badge */}
-        <div className="mb-6 flex items-center gap-2">
-          <div className="bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1 rounded-full">
-            AI-Powered Analysis
-          </div>
-          <div className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">
-            Claude AI
+        {/* Simple Analysis Label */}
+        <div className="mb-6">
+          <div className="inline-block bg-blue-50 text-blue-900 text-sm font-medium px-4 py-2 rounded-lg">
+            ✨ AI Analysis
           </div>
         </div>
 

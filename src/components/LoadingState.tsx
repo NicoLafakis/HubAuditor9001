@@ -14,22 +14,22 @@ export default function LoadingState({ message = 'Loading...' }: LoadingStatePro
 
         {/* Sub-message */}
         <p className="text-gray-600 max-w-md">
-          This may take a few moments while we analyze your HubSpot data...
+          Sit tight! We're digging through your HubSpot data to find insights...
         </p>
 
         {/* Progress steps */}
         <div className="mt-8 space-y-2 text-sm text-gray-500">
           <div className="flex items-center justify-center gap-2">
             <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
-            <span>Fetching data from HubSpot</span>
+            <span>Connecting to your HubSpot account</span>
           </div>
           <div className="flex items-center justify-center gap-2">
             <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse delay-100"></div>
-            <span>Calculating metrics</span>
+            <span>Analyzing your data for opportunities</span>
           </div>
           <div className="flex items-center justify-center gap-2">
             <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse delay-200"></div>
-            <span>Generating AI analysis</span>
+            <span>Preparing your personalized recommendations</span>
           </div>
         </div>
       </div>
