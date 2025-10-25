@@ -9,8 +9,60 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Backgrounds
         background: "var(--background)",
-        foreground: "var(--foreground)",
+        card: {
+          DEFAULT: "var(--card-background)",
+          foreground: "var(--foreground)",
+        },
+        sidebar: "var(--sidebar-background)",
+        muted: {
+          DEFAULT: "var(--muted)",
+          foreground: "var(--muted-foreground)",
+        },
+        
+        // Text colors
+        foreground: {
+          DEFAULT: "var(--foreground)",
+          light: "var(--foreground-light)",
+        },
+        
+        // Borders
+        border: {
+          DEFAULT: "var(--border)",
+          card: "var(--card-border)",
+          input: "var(--input-border)",
+        },
+        
+        // Primary/Accent
+        primary: {
+          DEFAULT: "var(--primary)",
+          hover: "var(--primary-hover)",
+          focus: "var(--primary-focus)",
+          foreground: "var(--accent-foreground)",
+        },
+        
+        // State colors
+        success: "var(--success)",
+        warning: "var(--warning)",
+        error: "var(--error)",
+        info: "var(--info)",
+        
+        // Input fields
+        input: {
+          DEFAULT: "var(--input-background)",
+          border: "var(--input-border)",
+          focus: "var(--input-focus-border)",
+        },
+      },
+      borderColor: {
+        DEFAULT: "var(--border)",
+      },
+      backgroundColor: {
+        DEFAULT: "var(--background)",
+      },
+      textColor: {
+        DEFAULT: "var(--foreground)",
       },
     },
   },

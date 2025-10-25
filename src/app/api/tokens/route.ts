@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user's token list
-    const tokens = getUserTokenList(payload.userId);
+    const tokens = await getUserTokenList(payload.userId);
 
     return NextResponse.json({ tokens });
   } catch (error) {
@@ -66,9 +66,9 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { tokenName, tokenValue, tokenType } = body;
+    const { tokenName, token, tokenType } = body;
 
-    if (!tokenName || !tokenValue) {
+    if (!tokenName || !token) {
       return NextResponse.json(
         { error: 'Token name and value are required' },
         { status: 400 }
@@ -76,10 +76,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Save the token (encrypted)
-    const success = saveUserToken(
+    const success = await saveUserToken(
       payload.userId,
       tokenName,
-      tokenValue,
+      token,
       tokenType || 'hubspot'
     );
 
@@ -125,8 +125,8 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const { searchParams } = new URL(request.url);
-    const tokenName = searchParams.get('name');
+    const body = await request.json();
+    const { tokenName } = body;
 
     if (!tokenName) {
       return NextResponse.json(
@@ -136,7 +136,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete the token
-    const success = deleteUserToken(payload.userId, tokenName);
+    const success = await deleteUserToken(payload.userId, tokenName);
 
     if (!success) {
       return NextResponse.json(

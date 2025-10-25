@@ -2,42 +2,88 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Nord Color Palette Base */
 :root {
-  /* Light mode colors */
-  --background: #ffffff;
-  --foreground: #1a1a1a;
-  --card-background: #ffffff;
-  --card-border: #e5e7eb;
-  --input-background: #ffffff;
-  --input-border: #d1d5db;
-  --input-focus: #3b82f6;
-  --primary: #3b82f6;
-  --primary-hover: #2563eb;
-  --secondary: #6b7280;
-  --accent: #8b5cf6;
-  --success: #10b981;
-  --error: #ef4444;
-  --muted: #f3f4f6;
-  --muted-foreground: #6b7280;
+  /* Nord Polar Night */
+  --nord-darkest: #2E3440;
+  --nord-darker: #3B4252;
+  --nord-dark: #434C5E;
+  --nord-medium: #4C566A;
+  
+  /* Nord Snow Storm */
+  --nord-light: #D8DEE9;
+  --nord-lighter: #E5E9F0;
+  --nord-lightest: #ECEFF4;
 }
 
+/* Light Mode Theme */
+:root {
+  /* Backgrounds */
+  --background: var(--nord-lightest); /* #ECEFF4 - Main page background */
+  --card-background: #ffffff;        /* Pure white for cards, panels, modal backgrounds */
+  --sidebar-background: var(--nord-lighter); /* #E5E9F0 - Sidebar background */
+  --muted: var(--nord-lighter);      /* #E5E9F0 - Subtle backgrounds for tags, secondary buttons */
+
+  /* Text */
+  --foreground: var(--nord-darker);  /* #3B4252 - Primary text color */
+  --foreground-light: var(--nord-dark); /* #434C5E - Slightly lighter primary text */
+  --muted-foreground: var(--nord-medium); /* #4C566A - Secondary text, placeholders, descriptions */
+  --accent-foreground: #ffffff;      /* Text on primary buttons/elements */
+
+  /* Borders */
+  --border: var(--nord-light);       /* #D8DEE9 - Standard borders */
+  --card-border: var(--nord-light);  /* #D8DEE9 - Card borders */
+  --input-border: var(--nord-light); /* #D8DEE9 - Input field borders */
+
+  /* Primary Action / Accent */
+  --primary: #5E81AC;              /* A complementary blue for buttons, links, highlights */
+  --primary-hover: #81A1C1;         /* Lighter blue for hover states */
+  --primary-focus: #88C0D0;         /* Slightly different blue/cyan for focus rings */
+
+  /* State Colors */
+  --success: #A3BE8C;              /* Green for success messages, positive metrics */
+  --warning: #EBCB8B;              /* Yellow for warnings, attention needed */
+  --error: #BF616A;                /* Red for errors, critical issues */
+  --info: #88C0D0;                 /* Cyan/Light Blue for informational messages */
+
+  /* Input Fields */
+  --input-background: #ffffff;
+  --input-focus-border: var(--primary); /* #5E81AC */
+}
+
+/* Dark Mode Theme */
 [data-theme="dark"] {
-  /* Dark mode colors */
-  --background: #0f172a;
-  --foreground: #f1f5f9;
-  --card-background: #1e293b;
-  --card-border: #334155;
-  --input-background: #1e293b;
-  --input-border: #475569;
-  --input-focus: #60a5fa;
-  --primary: #3b82f6;
-  --primary-hover: #60a5fa;
-  --secondary: #94a3b8;
-  --accent: #a78bfa;
-  --success: #34d399;
-  --error: #f87171;
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
+  /* Backgrounds */
+  --background: var(--nord-darkest);   /* #2E3440 - Main page background */
+  --card-background: var(--nord-darker); /* #3B4252 - Card, panels, modal backgrounds */
+  --sidebar-background: var(--nord-darkest); /* #2E3440 - Sidebar background (same as main bg) */
+  --muted: var(--nord-dark);          /* #434C5E - Subtle backgrounds */
+
+  /* Text */
+  --foreground: var(--nord-lighter);   /* #E5E9F0 - Primary text color */
+  --foreground-light: var(--nord-lightest);/* #ECEFF4 - Slightly lighter text */
+  --muted-foreground: var(--nord-light); /* #D8DEE9 - Secondary text */
+  --accent-foreground: var(--nord-darkest);/* #2E3440 - Text on primary buttons */
+
+  /* Borders */
+  --border: var(--nord-dark);          /* #434C5E - Standard borders */
+  --card-border: var(--nord-dark);     /* #434C5E - Card borders */
+  --input-border: var(--nord-medium);  /* #4C566A - Input field borders */
+
+  /* Primary Action / Accent */
+  --primary: #88C0D0;              /* Lighter cyan/blue for dark mode */
+  --primary-hover: #8FBCBB;         /* Slightly different cyan/green for hover */
+  --primary-focus: #5E81AC;         /* Darker blue for focus rings */
+
+  /* State Colors */
+  --success: #A3BE8C;              /* Green (can often stay the same) */
+  --warning: #EBCB8B;              /* Yellow (can often stay the same) */
+  --error: #BF616A;                /* Red (can often stay the same) */
+  --info: #88C0D0;                 /* Cyan/Light Blue */
+
+  /* Input Fields */
+  --input-background: var(--nord-dark); /* #434C5E */
+  --input-focus-border: var(--primary); /* #88C0D0 */
 }
 
 body {
@@ -66,10 +112,41 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--secondary);
+  background: var(--muted-foreground);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--muted-foreground);
+  background: var(--foreground-light);
+}
+
+/* Custom animations for AnalysisPanel */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slideIn {
+  animation: slideIn 0.3s ease-out;
 }

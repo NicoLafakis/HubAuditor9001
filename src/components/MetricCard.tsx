@@ -11,15 +11,15 @@ export default function MetricCard({ metric }: MetricCardProps) {
 
   // Color classes based on severity with friendly labels
   const severityColors = {
-    good: 'border-green-500 bg-green-50',
-    warning: 'border-yellow-500 bg-yellow-50',
-    critical: 'border-red-500 bg-red-50',
+    good: 'border-success bg-success/10',
+    warning: 'border-warning bg-warning/10',
+    critical: 'border-error bg-error/10',
   };
 
   const severityTextColors = {
-    good: 'text-green-800',
-    warning: 'text-yellow-800',
-    critical: 'text-red-800',
+    good: 'text-success',
+    warning: 'text-warning',
+    critical: 'text-error',
   };
 
   const severityLabels = {
@@ -28,20 +28,20 @@ export default function MetricCard({ metric }: MetricCardProps) {
     critical: 'Action Needed',
   };
 
-  const borderColor = severity ? severityColors[severity] : 'border-gray-200 bg-white';
-  const textColor = severity ? severityTextColors[severity] : 'text-gray-900';
+  const borderColor = severity ? severityColors[severity] : 'border-card-border bg-card';
+  const textColor = severity ? severityTextColors[severity] : 'text-foreground';
 
   return (
     <div className={`border-l-4 rounded-lg p-4 shadow-sm ${borderColor} relative`}>
       <div className="flex flex-col">
         <div className="flex items-start justify-between mb-1">
-          <span className="text-sm font-medium text-gray-600 flex-1">{label}</span>
+          <span className="text-sm font-medium text-muted-foreground flex-1">{label}</span>
           {description && (
             <div className="relative ml-2">
               <button
                 onMouseEnter={() => setShowTooltip(true)}
                 onMouseLeave={() => setShowTooltip(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-muted-foreground hover:text-foreground-light transition-colors"
                 aria-label="More information"
               >
                 <svg
@@ -57,9 +57,9 @@ export default function MetricCard({ metric }: MetricCardProps) {
                 </svg>
               </button>
               {showTooltip && (
-                <div className="absolute z-10 w-64 p-3 text-xs text-gray-700 bg-white border border-gray-200 rounded-lg shadow-lg -right-2 top-6">
+                <div className="absolute z-10 w-64 p-3 text-xs text-foreground-light bg-card border border-border rounded-lg shadow-lg -right-2 top-6">
                   {description}
-                  <div className="absolute w-2 h-2 bg-white border-t border-l border-gray-200 transform rotate-45 -top-1 right-3"></div>
+                  <div className="absolute w-2 h-2 bg-card border-t border-l border-border transform rotate-45 -top-1 right-3"></div>
                 </div>
               )}
             </div>
@@ -77,7 +77,7 @@ export default function MetricCard({ metric }: MetricCardProps) {
         </div>
         {/* Severity Badge */}
         {severity && (
-          <div className="mt-3 pt-2 border-t border-gray-200">
+          <div className="mt-3 pt-2 border-t border-border">
             <span className={`text-xs font-medium ${textColor}`}>
               {severity === 'good' && '✓ '}
               {severity === 'warning' && '⚠ '}
@@ -89,17 +89,17 @@ export default function MetricCard({ metric }: MetricCardProps) {
         {trend && (
           <div className="mt-2">
             {trend === 'up' && (
-              <span className="text-xs text-red-600 flex items-center">
+              <span className="text-xs text-error flex items-center">
                 ↑ Trending up
               </span>
             )}
             {trend === 'down' && (
-              <span className="text-xs text-green-600 flex items-center">
+              <span className="text-xs text-success flex items-center">
                 ↓ Trending down
               </span>
             )}
             {trend === 'neutral' && (
-              <span className="text-xs text-gray-600 flex items-center">
+              <span className="text-xs text-muted-foreground flex items-center">
                 → Stable
               </span>
             )}

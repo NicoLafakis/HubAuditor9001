@@ -5,12 +5,12 @@ interface ErrorDisplayProps {
 
 export default function ErrorDisplay({ error, onRetry }: ErrorDisplayProps) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background px-4">
+      <div className="max-w-md w-full bg-card rounded-lg shadow-lg p-8 text-center border border-card-border">
         {/* Error Icon */}
-        <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
+        <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-error/10 mb-4">
           <svg
-            className="h-8 w-8 text-red-600"
+            className="h-8 w-8 text-error"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -25,24 +25,24 @@ export default function ErrorDisplay({ error, onRetry }: ErrorDisplayProps) {
         </div>
 
         {/* Error Title */}
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Something Went Wrong</h2>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Something Went Wrong</h2>
 
         {/* Error Message */}
-        <p className="text-gray-600 mb-6">{error}</p>
+        <p className="text-muted-foreground mb-6">{error}</p>
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           {onRetry && (
             <button
               onClick={onRetry}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              className="bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold hover:bg-primary-hover transition-colors"
             >
               Try Again
             </button>
           )}
           <a
             href="/"
-            className="bg-gray-200 text-gray-800 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+            className="bg-muted text-foreground px-6 py-3 rounded-lg font-semibold hover:bg-muted/80 transition-colors"
           >
             Back to Home
           </a>
