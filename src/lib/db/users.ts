@@ -7,6 +7,7 @@ export interface User {
   id: number;
   email: string;
   name?: string;
+  role: 'admin' | 'user';
   created_at: string;
   updated_at: string;
 }
@@ -34,9 +35,10 @@ export async function createUser(email: string, password: string, name?: string)
     const passwordHash = await bcrypt.hash(password, 10);
     console.log('[createUser] Password hashed successfully');
 
+    // New users are always 'user' role by default
     const [result] = await pool.execute<ResultSetHeader>(
-      'INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)',
-      [email, passwordHash, name || null]
+      'INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, ?)',
+      [email, passwordHash, name || null, 'user']
     );
     console.log('[createUser] User inserted with ID:', result.insertId);
 
@@ -60,7 +62,7 @@ export async function verifyUser(email: string, password: string): Promise<User 
     const pool = getDatabase();
 
     const [rows] = await pool.execute<RowDataPacket[]>(
-      'SELECT id, email, password_hash, name, created_at, updated_at FROM users WHERE email = ?',
+      'SELECT id, email, password_hash, name, role, created_at, updated_at FROM users WHERE email = ?',
       [email]
     );
 
@@ -82,6 +84,7 @@ export async function verifyUser(email: string, password: string): Promise<User 
       id: row.id,
       email: row.email,
       name: row.name,
+      role: row.role,
       created_at: row.created_at,
       updated_at: row.updated_at,
     };
@@ -99,7 +102,7 @@ export async function getUserById(id: number): Promise<User | null> {
     const pool = getDatabase();
 
     const [rows] = await pool.execute<RowDataPacket[]>(
-      'SELECT id, email, name, created_at, updated_at FROM users WHERE id = ?',
+      'SELECT id, email, name, role, created_at, updated_at FROM users WHERE id = ?',
       [id]
     );
 
@@ -113,6 +116,7 @@ export async function getUserById(id: number): Promise<User | null> {
       id: row.id,
       email: row.email,
       name: row.name,
+      role: row.role,
       created_at: row.created_at,
       updated_at: row.updated_at,
     };
@@ -130,7 +134,7 @@ export async function getUserByEmail(email: string): Promise<User | null> {
     const pool = getDatabase();
 
     const [rows] = await pool.execute<RowDataPacket[]>(
-      'SELECT id, email, name, created_at, updated_at FROM users WHERE email = ?',
+      'SELECT id, email, name, role, created_at, updated_at FROM users WHERE email = ?',
       [email]
     );
 
@@ -144,12 +148,87 @@ export async function getUserByEmail(email: string): Promise<User | null> {
       id: row.id,
       email: row.email,
       name: row.name,
+      role: row.role,
       created_at: row.created_at,
       updated_at: row.updated_at,
     };
   } catch (error) {
     console.error('Error getting user by email:', error);
     return null;
+  }
+}
+
+/**
+ * Get all users (Admin only)
+ */
+export async function getAllUsers(): Promise<User[]> {
+  try {
+    const pool = getDatabase();
+
+    const [rows] = await pool.execute<RowDataPacket[]>(
+      'SELECT id, email, name, role, created_at, updated_at FROM users ORDER BY created_at DESC'
+    );
+
+    return rows.map(row => ({
+      id: row.id,
+      email: row.email,
+      name: row.name,
+      role: row.role,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+    }));
+  } catch (error) {
+    console.error('Error getting all users:', error);
+    return [];
+  }
+}
+
+/**
+ * Get user statistics (Admin only)
+ */
+export async function getUserStats(): Promise<{
+  totalUsers: number;
+  totalAudits: number;
+  recentAudits: Array<{ user_email: string; audit_type: string; created_at: string }>;
+}> {
+  try {
+    const pool = getDatabase();
+
+    // Get total users
+    const [userCount] = await pool.execute<RowDataPacket[]>(
+      'SELECT COUNT(*) as count FROM users'
+    );
+
+    // Get total audits
+    const [auditCount] = await pool.execute<RowDataPacket[]>(
+      'SELECT COUNT(*) as count FROM audit_history'
+    );
+
+    // Get recent audits with user info
+    const [recentAudits] = await pool.execute<RowDataPacket[]>(
+      `SELECT u.email as user_email, ah.audit_type, ah.created_at 
+       FROM audit_history ah 
+       JOIN users u ON ah.user_id = u.id 
+       ORDER BY ah.created_at DESC 
+       LIMIT 10`
+    );
+
+    return {
+      totalUsers: userCount[0].count,
+      totalAudits: auditCount[0].count,
+      recentAudits: recentAudits.map(row => ({
+        user_email: row.user_email,
+        audit_type: row.audit_type,
+        created_at: row.created_at,
+      })),
+    };
+  } catch (error) {
+    console.error('Error getting user stats:', error);
+    return {
+      totalUsers: 0,
+      totalAudits: 0,
+      recentAudits: [],
+    };
   }
 }
 

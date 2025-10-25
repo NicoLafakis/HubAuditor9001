@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "db:init": "tsx ./scripts/init-db.ts",
-    "db:diagnose": "tsx ./scripts/diagnose-db.ts"
+    "db:diagnose": "tsx ./scripts/diagnose-db.ts",
+    "db:add-roles": "tsx ./scripts/add-user-roles.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.27.0",

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "@/styles/globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/components/AuthProvider";
+import Header from "@/components/Header";
 
 export const metadata: Metadata = {
   title: "HubSpot AI Audit",
@@ -18,6 +19,7 @@ export default function RootLayout({
       <body className="antialiased">
         <ThemeProvider>
           <AuthProvider>
+            <Header />
             {children}
           </AuthProvider>
         </ThemeProvider>
