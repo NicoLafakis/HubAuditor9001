@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import DOMPurify from 'isomorphic-dompurify';
 
 interface AnalysisPanelProps {
   analysis: string;
@@ -19,8 +20,6 @@ export default function AnalysisPanel({ analysis, auditType, timestamp }: Analys
   const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set([0])); // First section open by default
   const [currentSection, setCurrentSection] = useState(0);
   const [showBackToTop, setShowBackToTop] = useState(false);
-  const [bookmarkedSections, setBookmarkedSections] = useState<Set<number>>(new Set());
-  const [showBookmarks, setShowBookmarks] = useState(false);
 
   const auditTypeNames: Record<string, string> = {
     'contact-quality': 'Contact Data Quality',
@@ -57,17 +56,6 @@ export default function AnalysisPanel({ analysis, auditType, timestamp }: Analys
     }
     setExpandedSections(newExpanded);
     setCurrentSection(index);
-  };
-
-  const toggleBookmark = (index: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const newBookmarks = new Set(bookmarkedSections);
-    if (newBookmarks.has(index)) {
-      newBookmarks.delete(index);
-    } else {
-      newBookmarks.add(index);
-    }
-    setBookmarkedSections(newBookmarks);
   };
 
   const goToNext = () => {
@@ -164,12 +152,13 @@ export default function AnalysisPanel({ analysis, auditType, timestamp }: Analys
                       className="h-2 rounded-full transition-all hover:scale-110"
                       style={{
                         width: index === currentSection ? '32px' : '8px',
-                        background: index === currentSection 
-                          ? 'var(--primary)' 
-                          : expandedSections.has(index) 
-                          ? 'var(--primary-hover)' 
+                        background: index === currentSection
+                          ? 'var(--primary)'
+                          : expandedSections.has(index)
+                          ? 'var(--primary-hover)'
                           : 'var(--muted)'
                       }}
+                      aria-label={`Go to section ${index + 1}: ${sections[index]?.title}`}
                       title={sections[index]?.title}
                     />
                   ))}
@@ -183,12 +172,14 @@ export default function AnalysisPanel({ analysis, auditType, timestamp }: Analys
               <button
                 onClick={collapseAll}
                 className="text-sm px-4 py-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
+                aria-label="Collapse all sections"
               >
                 Collapse All
               </button>
               <button
                 onClick={expandAll}
                 className="text-sm px-4 py-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
+                aria-label="Expand all sections"
               >
                 Expand All
               </button>
@@ -197,6 +188,7 @@ export default function AnalysisPanel({ analysis, auditType, timestamp }: Analys
                 onClick={goToPrev}
                 disabled={currentSection === 0}
                 className="px-4 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed disabled:hover:bg-transparent rounded transition-colors flex items-center gap-1"
+                aria-label="Go to previous section"
               >
                 <span>←</span>
                 <span className="hidden md:inline">Previous</span>
@@ -205,6 +197,7 @@ export default function AnalysisPanel({ analysis, auditType, timestamp }: Analys
                 onClick={goToNext}
                 disabled={currentSection === sections.length - 1}
                 className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary-hover disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed rounded transition-colors flex items-center gap-1"
+                aria-label="Go to next section"
               >
                 <span className="hidden md:inline">Next</span>
                 <span>→</span>
@@ -232,9 +225,15 @@ export default function AnalysisPanel({ analysis, auditType, timestamp }: Analys
               <button
                 onClick={() => toggleSection(index)}
                 className="w-full px-8 py-5 flex items-center justify-between text-left transition-colors group"
+                aria-expanded={expandedSections.has(index)}
+                aria-controls={`section-content-${index}`}
+                aria-label={`${expandedSections.has(index) ? 'Collapse' : 'Expand'} ${section.title} section`}
               >
                 <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
+                  <h2
+                    id={`section-heading-${index}`}
+                    className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors"
+                  >
                     {section.title}
                   </h2>
                 </div>
@@ -254,15 +253,18 @@ export default function AnalysisPanel({ analysis, auditType, timestamp }: Analys
 
               {/* Section Content */}
               <div
-                className={`overflow-hidden transition-all duration-500 ease-in-out ${
-                  expandedSections.has(index) ? 'max-h-[10000px] opacity-100' : 'max-h-0 opacity-0'
+                id={`section-content-${index}`}
+                role="region"
+                aria-labelledby={`section-heading-${index}`}
+                className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                  expandedSections.has(index) ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
                 }`}
               >
                 <div className="px-8 pb-8 border-t border-border">
                   <div
                     className="prose prose-lg max-w-none leading-relaxed pt-6"
                     style={{ color: 'var(--foreground-light)' }}
-                    dangerouslySetInnerHTML={{ __html: formatMarkdownToHTML(section.content) }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formatMarkdownToHTML(section.content)) }}
                   />
                 </div>
               </div>
@@ -270,16 +272,9 @@ export default function AnalysisPanel({ analysis, auditType, timestamp }: Analys
           ))}
         </div>
 
-        {/* Export Button */}
-        <div className="mt-8 pt-6 border-t border-border">
-          <button className="w-full sm:w-auto bg-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:bg-primary-hover transition-colors shadow-sm hover:shadow-md">
-            📄 Export Full Report
-          </button>
-        </div>
-
         {/* Keyboard Shortcut Hint */}
-        <div className="mt-4 text-center text-xs text-muted-foreground">
-          💡 Tip: Use arrow keys to navigate between sections
+        <div className="mt-8 pt-6 border-t border-border text-center text-sm text-muted-foreground">
+          Tip: Use arrow keys to navigate between sections
         </div>
       </div>
 

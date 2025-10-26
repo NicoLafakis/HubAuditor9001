@@ -5,20 +5,19 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export default function ConfigurePage() {
-  const { user, loading } = useAuth();
+  const { user, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!isLoading && !user) {
       router.push('/auth');
     }
-  }, [user, loading, router]);
+  }, [user, isLoading, router]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
         <div className="text-center">
-          <div className="mb-4 text-4xl">⚙️</div>
           <p style={{ color: 'var(--foreground)' }}>Loading configuration...</p>
         </div>
       </div>
@@ -35,7 +34,7 @@ export default function ConfigurePage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--foreground)' }}>
-            ⚙️ Configuration
+            Configuration
           </h1>
           <p style={{ color: 'var(--muted-foreground)' }}>
             Manage your audit settings and preferences
@@ -53,7 +52,7 @@ export default function ConfigurePage() {
             }}
           >
             <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--foreground)' }}>
-              📋 Audit Settings
+              Audit Settings
             </h2>
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 rounded" style={{ background: 'var(--background)' }}>
@@ -89,13 +88,13 @@ export default function ConfigurePage() {
             }}
           >
             <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--foreground)' }}>
-              🔗 HubSpot Connection
+              HubSpot Connection
             </h2>
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 rounded" style={{ background: 'var(--background)' }}>
                 <div>
                   <h3 className="font-medium" style={{ color: 'var(--foreground)' }}>API Token Status</h3>
-                  <p className="text-sm" style={{ color: 'var(--success)' }}>✓ Connected and verified</p>
+                  <p className="text-sm" style={{ color: 'var(--success)' }}>Connected and verified</p>
                 </div>
                 <button
                   className="px-4 py-2 rounded font-medium"
@@ -119,7 +118,7 @@ export default function ConfigurePage() {
             }}
           >
             <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--foreground)' }}>
-              🎨 Display Preferences
+              Display Preferences
             </h2>
             <div className="space-y-4">
               <div className="p-4 rounded" style={{ background: 'var(--background)' }}>

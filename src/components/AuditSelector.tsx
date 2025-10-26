@@ -16,35 +16,35 @@ const auditOptions: AuditOption[] = [
     id: 'contact-quality',
     name: 'Contact Data Quality',
     description: 'Analyze contact completeness and data accuracy',
-    icon: '👤',
+    icon: '',
     available: true,
   },
   {
     id: 'pipeline-health',
     name: 'Deal Pipeline Health',
     description: 'Evaluate pipeline stages and deal progression',
-    icon: '📊',
+    icon: '',
     available: true,
   },
   {
     id: 'company-enrichment',
     name: 'Company Enrichment',
     description: 'Assess company data completeness and relationships',
-    icon: '🏢',
+    icon: '',
     available: true,
   },
   {
     id: 'lead-scoring',
     name: 'Lead Scoring & Segmentation',
     description: 'Review lead scoring effectiveness and engagement',
-    icon: '🎯',
+    icon: '',
     available: true,
   },
   {
     id: 'sync-integrity',
     name: 'Sync Integrity',
     description: 'Monitor integration health and data sync status',
-    icon: '🔄',
+    icon: '',
     available: true,
   },
 ];
@@ -183,7 +183,7 @@ export default function AuditSelector({ onSelectAudit }: AuditSelectorProps) {
               }}
             >
               <div className="flex items-start gap-4">
-                <div className="text-4xl">{audit.icon}</div>
+                {audit.icon && <div className="text-4xl">{audit.icon}</div>}
                 <div className="flex-1">
                   <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--foreground)' }}>
                     {audit.name}

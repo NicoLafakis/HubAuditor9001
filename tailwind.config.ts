@@ -64,6 +64,10 @@ const config: Config = {
       textColor: {
         DEFAULT: "var(--foreground)",
       },
+      animation: {
+        'pulse-delay-100': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) 0.1s infinite',
+        'pulse-delay-200': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) 0.2s infinite',
+      },
     },
   },
   plugins: [],
