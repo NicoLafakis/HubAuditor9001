@@ -342,6 +342,41 @@ export default function ProfilePage() {
                   Your API keys are encrypted and stored securely. They're used for running audits on your HubSpot account.
                 </p>
 
+                {/* Saved Keys List */}
+                {savedTokens.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="font-medium text-foreground mb-4 flex items-center gap-2">
+                      <span className="text-xl">🔑</span> Your Saved API Keys
+                    </h3>
+                    <div className="space-y-3">
+                      {savedTokens.map((token) => (
+                        <div
+                          key={token.token_name}
+                          className="flex items-center justify-between p-4 bg-card border border-card-border rounded-lg hover:border-primary transition-colors"
+                        >
+                          <div>
+                            <p className="font-medium text-foreground">{token.token_name}</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Added {new Date(token.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => handleDeleteToken(token.token_name)}
+                            className="px-4 py-2 rounded-lg font-medium transition-all hover:scale-105"
+                            style={{
+                              background: 'var(--error)',
+                              color: 'white',
+                            }}
+                            title="Delete this API key"
+                          >
+                            🗑️ Delete
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Add New Key Form */}
                 <form onSubmit={handleSaveAPIKey} className="space-y-4 mb-8 p-4 bg-muted rounded-lg border border-border">
                   <h3 className="font-medium text-foreground">Add New API Key</h3>
@@ -389,40 +424,9 @@ export default function ProfilePage() {
                   </button>
                 </form>
 
-                {/* Saved Keys List */}
-                {savedTokens.length > 0 && (
-                  <div>
-                    <h3 className="font-medium text-foreground mb-4">Saved API Keys</h3>
-                    <div className="space-y-3">
-                      {savedTokens.map((token) => (
-                        <div
-                          key={token.token_name}
-                          className="flex items-center justify-between p-4 bg-card border border-card-border rounded-lg hover:border-border transition-colors"
-                        >
-                          <div>
-                            <p className="font-medium text-foreground">{token.token_name}</p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Added {new Date(token.created_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => handleDeleteToken(token.token_name)}
-                            className="text-error hover:opacity-80 text-sm font-medium px-3 py-1 rounded transition-opacity"
-                            style={{ backgroundColor: 'var(--error)', opacity: 0.1 }}
-                            onMouseEnter={(e) => e.currentTarget.style.opacity = '0.2'}
-                            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.1'}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
                 {savedTokens.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
-                    <p>🔑 No API keys saved yet</p>
+                    <p className="text-lg">🔑 No API keys saved yet</p>
                     <p className="text-sm mt-2">Add your first HubSpot API key above to get started</p>
                   </div>
                 )}

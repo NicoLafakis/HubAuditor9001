@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get and decrypt the token
-    const tokenValue = getUserToken(payload.userId, tokenName);
+    const tokenValue = await getUserToken(payload.userId, tokenName);
 
     if (!tokenValue) {
       return NextResponse.json(

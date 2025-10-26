@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AuditSelector from '@/components/AuditSelector';
-import Header from '@/components/Header';
 import { AuditType } from '@/types';
 
 // Force dynamic rendering to avoid SSR issues with ThemeProvider
@@ -25,7 +24,6 @@ export default function Home() {
 
   return (
     <>
-      <Header />
       {isSubmitting ? (
         <div className="flex items-center justify-center min-h-screen" style={{ background: 'var(--background)' }}>
           <div className="text-center">

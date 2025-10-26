@@ -126,7 +126,7 @@ export default function AnalysisPanel({ analysis, auditType, timestamp }: Analys
 
   return (
     <div id="analysis-scroll-container" className="flex-1 bg-background p-8 overflow-y-auto relative">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
@@ -137,8 +137,8 @@ export default function AnalysisPanel({ analysis, auditType, timestamp }: Analys
           </p>
         </div>
 
-        {/* Navigation Controls */}
-        <div className="mb-6 bg-card rounded-xl shadow-sm border border-card p-4 sticky top-0 z-10">
+        {/* Navigation Controls - Sticky */}
+        <div className="mb-6 bg-card rounded-xl shadow-sm border border-card p-4 sticky top-0 z-20 backdrop-blur-sm" style={{ backgroundColor: 'rgba(var(--card-rgb), 0.95)' }}>
           <div className="flex items-center justify-between gap-4 mb-3">
             {/* Progress */}
             <div className="flex items-center gap-3">
@@ -359,6 +359,7 @@ function parseAnalysisIntoSections(analysis: string): AnalysisSection[] {
     impact: '💰',
     recommendations: '✅',
     'action items': '✅',
+    'action steps': '✅',
     'next steps': '🚀',
     benchmark: '📈',
     summary: '📝',
@@ -388,8 +389,10 @@ function parseAnalysisIntoSections(analysis: string): AnalysisSection[] {
       
       // Start new section
       const title = h2Match ? h2Match[1] : boldMatch![1];
+      const cleanTitle = title.replace(/\*\*/g, '').trim();
+      
       currentSection = {
-        title: title.replace(/\*\*/g, '').trim(),
+        title: cleanTitle,
         content: '',
         icon: getIcon(title),
       };
@@ -416,14 +419,94 @@ function parseAnalysisIntoSections(analysis: string): AnalysisSection[] {
     sections.push(currentSection);
   }
 
-  return sections.filter(s => s.content.length > 0);
+  // Merge Overview and Key Findings
+  const mergedSections: AnalysisSection[] = [];
+  let overviewSection: AnalysisSection | null = null;
+  
+  for (const section of sections) {
+    const lowerTitle = section.title.toLowerCase();
+    
+    if (lowerTitle.includes('overview')) {
+      overviewSection = section;
+    } else if (lowerTitle.includes('key finding') || lowerTitle.includes('findings')) {
+      if (overviewSection) {
+        overviewSection.content += '\n\n### Key Findings\n\n' + section.content;
+      } else {
+        mergedSections.push(section);
+      }
+    } else if (lowerTitle.includes('action') || lowerTitle.includes('next step')) {
+      // Merge into Recommendations
+      const recommendationsIndex = mergedSections.findIndex(s => 
+        s.title.toLowerCase().includes('recommendation')
+      );
+      if (recommendationsIndex >= 0) {
+        mergedSections[recommendationsIndex].content += '\n\n' + section.content;
+      } else {
+        // Create Recommendations section
+        mergedSections.push({
+          title: 'Recommendations',
+          content: section.content,
+          icon: '✅'
+        });
+      }
+    } else {
+      mergedSections.push(section);
+    }
+  }
+  
+  if (overviewSection) {
+    mergedSections.unshift(overviewSection);
+  }
+
+  return mergedSections.filter(s => s.content.length > 0);
 }
 
 /**
- * Simple markdown to HTML converter
+ * Simple markdown to HTML converter with table support
  */
 function formatMarkdownToHTML(markdown: string): string {
   let html = markdown;
+
+  // Handle markdown tables
+  const tableRegex = /(\|.+\|[\r\n]+\|[-:\s|]+\|[\r\n]+(?:\|.+\|[\r\n]*)+)/g;
+  html = html.replace(tableRegex, (match) => {
+    const lines = match.trim().split('\n');
+    if (lines.length < 3) return match;
+
+    const headers = lines[0].split('|').map(h => h.trim()).filter(h => h);
+    const rows = lines.slice(2).map(row => 
+      row.split('|').map(cell => cell.trim()).filter(cell => cell)
+    );
+
+    let tableHTML = '<div class="overflow-x-auto my-6"><table class="min-w-full border-collapse" style="border: 1px solid var(--border)">';
+    
+    // Header
+    tableHTML += '<thead style="background: var(--muted)"><tr>';
+    headers.forEach(header => {
+      tableHTML += `<th class="px-4 py-3 text-left font-semibold" style="border: 1px solid var(--border); color: var(--foreground)">${header}</th>`;
+    });
+    tableHTML += '</tr></thead>';
+
+    // Body
+    tableHTML += '<tbody>';
+    rows.forEach((row, idx) => {
+      const bgColor = idx % 2 === 0 ? 'var(--card)' : 'var(--background)';
+      tableHTML += `<tr style="background: ${bgColor}">`;
+      row.forEach(cell => {
+        tableHTML += `<td class="px-4 py-3" style="border: 1px solid var(--border); color: var(--foreground-light)">${cell}</td>`;
+      });
+      tableHTML += '</tr>';
+    });
+    tableHTML += '</tbody></table></div>';
+
+    return tableHTML;
+  });
+
+  // Handle subsection headers (###)
+  html = html.replace(/^###\s+(.+)$/gim, '<h3 class="text-lg font-semibold mt-6 mb-3" style="color: var(--foreground)">$1</h3>');
+
+  // Handle emoji bullets (📄, 💰, etc.) as subsection markers
+  html = html.replace(/^(📄|💰|🎯|⚠️|✅|🚀)\s+(.+):$/gim, '<h4 class="text-md font-semibold mt-4 mb-2 flex items-center gap-2" style="color: var(--foreground)"><span>$1</span><span>$2</span></h4>');
 
   // Bold text with **
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold" style="color: var(--foreground)">$1</strong>');
@@ -440,10 +523,19 @@ function formatMarkdownToHTML(markdown: string): string {
 
   // Paragraphs
   html = html.split('\n\n').map(para => {
-    if (para.trim().startsWith('<ul>') || para.trim().startsWith('<li>')) {
+    const trimmed = para.trim();
+    if (trimmed.startsWith('<ul>') || 
+        trimmed.startsWith('<li>') || 
+        trimmed.startsWith('<table') || 
+        trimmed.startsWith('<div class="overflow') ||
+        trimmed.startsWith('<h3') ||
+        trimmed.startsWith('<h4')) {
       return para;
     }
-    return `<p class="mb-4">${para.trim()}</p>`;
+    if (trimmed.length > 0) {
+      return `<p class="mb-4">${trimmed}</p>`;
+    }
+    return '';
   }).join('');
 
   return html;

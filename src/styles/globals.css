@@ -21,6 +21,8 @@
   /* Backgrounds */
   --background: var(--nord-lightest); /* #ECEFF4 - Main page background */
   --card-background: #ffffff;        /* Pure white for cards, panels, modal backgrounds */
+  --card: #ffffff;                   /* Alias for card-background */
+  --card-rgb: 255, 255, 255;         /* RGB values for alpha blending */
   --sidebar-background: var(--nord-lighter); /* #E5E9F0 - Sidebar background */
   --muted: var(--nord-lighter);      /* #E5E9F0 - Subtle backgrounds for tags, secondary buttons */
 
@@ -56,6 +58,8 @@
   /* Backgrounds */
   --background: var(--nord-darkest);   /* #2E3440 - Main page background */
   --card-background: var(--nord-darker); /* #3B4252 - Card, panels, modal backgrounds */
+  --card: var(--nord-darker);          /* Alias for card-background */
+  --card-rgb: 59, 66, 82;              /* RGB values for alpha blending */
   --sidebar-background: var(--nord-darkest); /* #2E3440 - Sidebar background (same as main bg) */
   --muted: var(--nord-dark);          /* #434C5E - Subtle backgrounds */
 

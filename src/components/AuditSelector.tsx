@@ -97,7 +97,7 @@ export default function AuditSelector({ onSelectAudit }: AuditSelectorProps) {
   const handleStartAudit = async () => {
     if (!selectedAudit) return;
 
-    let tokenToUse = hubspotToken;
+    let tokenToUse = '';
 
     // If using a saved token, fetch it
     if (selectedSavedToken) {
@@ -105,7 +105,7 @@ export default function AuditSelector({ onSelectAudit }: AuditSelectorProps) {
         const response = await fetch(`/api/tokens/get?name=${encodeURIComponent(selectedSavedToken)}`);
         if (response.ok) {
           const data = await response.json();
-          tokenToUse = data.tokenValue;
+          tokenToUse = data.tokenValue || '';
         } else {
           alert('Failed to load saved token');
           return;
@@ -114,7 +114,9 @@ export default function AuditSelector({ onSelectAudit }: AuditSelectorProps) {
         alert('Error loading saved token');
         return;
       }
-    } else if (hubspotToken.trim()) {
+    } else if (hubspotToken && hubspotToken.trim()) {
+      tokenToUse = hubspotToken.trim();
+      
       // Save new token if requested
       if (saveToken && tokenName.trim()) {
         try {
@@ -123,7 +125,7 @@ export default function AuditSelector({ onSelectAudit }: AuditSelectorProps) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               tokenName: tokenName.trim(),
-              tokenValue: hubspotToken.trim(),
+              token: tokenToUse,
               tokenType: 'hubspot',
             }),
           });
@@ -136,7 +138,7 @@ export default function AuditSelector({ onSelectAudit }: AuditSelectorProps) {
       return;
     }
 
-    if (tokenToUse.trim()) {
+    if (tokenToUse && tokenToUse.trim()) {
       onSelectAudit(selectedAudit, tokenToUse);
     }
   };
