@@ -125,8 +125,8 @@ export default function AnalysisPanel({ analysis, auditType, timestamp }: Analys
   }, [currentSection, sections.length]);
 
   return (
-    <div id="analysis-scroll-container" className="flex-1 bg-background p-8 overflow-y-auto relative">
-      <div className="max-w-5xl mx-auto">
+    <div className="flex-1 bg-background overflow-y-auto relative" id="analysis-scroll-container">
+      <div className="max-w-5xl mx-auto p-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
@@ -137,15 +137,21 @@ export default function AnalysisPanel({ analysis, auditType, timestamp }: Analys
           </p>
         </div>
 
-        {/* Navigation Controls - Sticky */}
-        <div className="mb-6 bg-card rounded-xl shadow-sm border border-card p-4 sticky top-0 z-20 backdrop-blur-sm" style={{ backgroundColor: 'rgba(var(--card-rgb), 0.95)' }}>
-          <div className="flex items-center justify-between gap-4 mb-3">
+        {/* Navigation Controls - Fixed Sticky */}
+        <div 
+          className="sticky top-0 z-20 mb-6 -mx-8 px-8 py-4 backdrop-blur-md border-b"
+          style={{ 
+            backgroundColor: 'rgba(var(--card-rgb), 0.95)',
+            borderColor: 'var(--border)'
+          }}
+        >
+          <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
             {/* Progress */}
             <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-foreground">
+              <span className="text-sm font-semibold text-foreground">
                 Section {currentSection + 1} of {sections.length}
               </span>
-              <div className="hidden sm:flex items-center gap-2">
+              <div className="hidden md:flex items-center gap-2">
                 <div className="flex gap-1">
                   {sections.map((_, index) => (
                     <button
@@ -155,7 +161,7 @@ export default function AnalysisPanel({ analysis, auditType, timestamp }: Analys
                         scrollToSection(index);
                         setExpandedSections(new Set([index]));
                       }}
-                      className="h-2 rounded-full transition-all"
+                      className="h-2 rounded-full transition-all hover:scale-110"
                       style={{
                         width: index === currentSection ? '32px' : '8px',
                         background: index === currentSection 
@@ -175,113 +181,66 @@ export default function AnalysisPanel({ analysis, auditType, timestamp }: Analys
             {/* Navigation Buttons */}
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setShowBookmarks(!showBookmarks)}
-                className="text-xs px-3 py-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors flex items-center gap-1"
-              >
-                <span>🔖</span>
-                <span className="hidden sm:inline">Bookmarks ({bookmarkedSections.size})</span>
-              </button>
-              <button
                 onClick={collapseAll}
-                className="text-xs px-3 py-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                className="text-sm px-4 py-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
               >
                 Collapse All
               </button>
               <button
                 onClick={expandAll}
-                className="text-xs px-3 py-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                className="text-sm px-4 py-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
               >
                 Expand All
               </button>
-              <div className="h-4 w-px bg-border mx-1"></div>
+              <div className="hidden md:block h-4 w-px bg-border mx-2"></div>
               <button
                 onClick={goToPrev}
                 disabled={currentSection === 0}
-                className="px-4 py-2 text-sm font-medium text-foreground-light hover:text-foreground disabled:text-muted-foreground disabled:cursor-not-allowed hover:bg-muted rounded-lg transition-colors flex items-center gap-1"
+                className="px-4 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed disabled:hover:bg-transparent rounded transition-colors flex items-center gap-1"
               >
                 <span>←</span>
-                <span className="hidden sm:inline">Previous</span>
+                <span className="hidden md:inline">Previous</span>
               </button>
               <button
                 onClick={goToNext}
                 disabled={currentSection === sections.length - 1}
-                className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary-hover disabled:bg-muted disabled:cursor-not-allowed rounded-lg transition-colors flex items-center gap-1"
+                className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary-hover disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed rounded transition-colors flex items-center gap-1"
               >
-                <span className="hidden sm:inline">Next</span>
+                <span className="hidden md:inline">Next</span>
                 <span>→</span>
               </button>
             </div>
           </div>
-
-          {/* Bookmarks Panel */}
-          {showBookmarks && bookmarkedSections.size > 0 && (
-            <div className="mt-3 pt-3 border-t border-border">
-              <p className="text-xs font-medium text-muted-foreground mb-2">Bookmarked Sections:</p>
-              <div className="flex flex-wrap gap-2">
-                {Array.from(bookmarkedSections).map(index => (
-                  <button
-                    key={index}
-                    onClick={() => {
-                      setCurrentSection(index);
-                      scrollToSection(index);
-                      setExpandedSections(new Set([index]));
-                    }}
-                    className="text-xs px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
-                    style={{ background: 'var(--primary-focus)', color: 'var(--primary)' }}
-                  >
-                    <span>{sections[index]?.icon}</span>
-                    <span>{sections[index]?.title}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Sections */}
-        <div className="space-y-4">
+        {/* Sections - Professional Design */}
+        <div className="space-y-6">
           {sections.map((section, index) => (
             <div
               key={index}
               id={`section-${index}`}
-              className={`bg-card rounded-xl shadow-sm border transition-all duration-300 transform ${
+              className={`bg-card border transition-all duration-200 ${
                 currentSection === index
-                  ? 'ring-2 scale-[1.01]'
-                  : 'border-card hover:shadow-md'
+                  ? 'ring-1 ring-primary shadow-lg'
+                  : 'border-border shadow-sm hover:shadow-md'
               }`}
               style={{
-                borderColor: currentSection === index ? 'var(--primary)' : undefined,
-                '--tw-ring-color': 'var(--primary-focus)'
+                borderLeft: currentSection === index ? '4px solid var(--primary)' : undefined,
               } as React.CSSProperties}
             >
-              {/* Section Header */}
+              {/* Section Header - Clean Professional Design */}
               <button
                 onClick={() => toggleSection(index)}
-                className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-muted rounded-t-xl transition-colors"
+                className="w-full px-8 py-5 flex items-center justify-between text-left transition-colors group"
               >
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{section.icon}</span>
-                  <div>
-                    <h2 className="text-xl font-bold text-foreground">{section.title}</h2>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {expandedSections.has(index) ? 'Click to collapse' : 'Click to expand'}
-                    </p>
-                  </div>
+                <div className="flex-1">
+                  <h2 className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
+                    {section.title}
+                  </h2>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={(e) => toggleBookmark(index, e)}
-                    className={`p-2 rounded-lg transition-all hover:scale-110 ${
-                      bookmarkedSections.has(index)
-                        ? 'text-warning hover:opacity-80'
-                        : 'text-muted-foreground hover:text-foreground-light'
-                    }`}
-                    title={bookmarkedSections.has(index) ? 'Remove bookmark' : 'Bookmark this section'}
-                  >
-                    <span className="text-xl">{bookmarkedSections.has(index) ? '🔖' : '🔖'}</span>
-                  </button>
+                <div className="flex items-center gap-3">
                   <svg
-                    className={`w-6 h-6 text-muted-foreground transition-transform duration-300 ${
+                    className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${
                       expandedSections.has(index) ? 'rotate-180' : ''
                     }`}
                     fill="none"
@@ -296,12 +255,12 @@ export default function AnalysisPanel({ analysis, auditType, timestamp }: Analys
               {/* Section Content */}
               <div
                 className={`overflow-hidden transition-all duration-500 ease-in-out ${
-                  expandedSections.has(index) ? 'max-h-[5000px] opacity-100' : 'max-h-0 opacity-0'
+                  expandedSections.has(index) ? 'max-h-[10000px] opacity-100' : 'max-h-0 opacity-0'
                 }`}
               >
-                <div className="px-6 pb-6 pt-2 animate-fadeIn">
+                <div className="px-8 pb-8 border-t border-border">
                   <div
-                    className="prose prose-lg max-w-none leading-relaxed"
+                    className="prose prose-lg max-w-none leading-relaxed pt-6"
                     style={{ color: 'var(--foreground-light)' }}
                     dangerouslySetInnerHTML={{ __html: formatMarkdownToHTML(section.content) }}
                   />
@@ -351,27 +310,22 @@ function parseAnalysisIntoSections(analysis: string): AnalysisSection[] {
   let currentSection: AnalysisSection | null = null;
   let contentBuffer: string[] = [];
 
-  const sectionIcons: Record<string, string> = {
-    overview: '📊',
-    'key findings': '🔍',
-    findings: '🔍',
-    'business impact': '💰',
-    impact: '💰',
-    recommendations: '✅',
-    'action items': '✅',
-    'action steps': '✅',
-    'next steps': '🚀',
-    benchmark: '📈',
-    summary: '📝',
-    conclusion: '🎯',
+  // Professional section configuration
+  const sectionConfig: Record<string, { title: string; icon: string; priority: number }> = {
+    'overview': { title: 'Overview', icon: '', priority: 1 },
+    'business impact': { title: 'Business Impact', icon: '', priority: 2 },
+    'recommendations': { title: 'Recommendations', icon: '', priority: 3 },
+    'benchmark': { title: 'Benchmark Against Industry Standards', icon: '', priority: 4 },
+    'grade': { title: 'Overall Grade', icon: '', priority: 5 },
+    'success metrics': { title: 'Success Metrics to Track', icon: '', priority: 6 },
   };
 
-  const getIcon = (title: string): string => {
+  const getSectionInfo = (title: string): { title: string; icon: string; priority: number } => {
     const lowerTitle = title.toLowerCase();
-    for (const [key, icon] of Object.entries(sectionIcons)) {
-      if (lowerTitle.includes(key)) return icon;
+    for (const [key, config] of Object.entries(sectionConfig)) {
+      if (lowerTitle.includes(key)) return config;
     }
-    return '📄';
+    return { title, icon: '', priority: 999 };
   };
 
   for (const line of lines) {
@@ -390,11 +344,12 @@ function parseAnalysisIntoSections(analysis: string): AnalysisSection[] {
       // Start new section
       const title = h2Match ? h2Match[1] : boldMatch![1];
       const cleanTitle = title.replace(/\*\*/g, '').trim();
+      const sectionInfo = getSectionInfo(cleanTitle);
       
       currentSection = {
-        title: cleanTitle,
+        title: sectionInfo.title,
         content: '',
-        icon: getIcon(title),
+        icon: sectionInfo.icon,
       };
     } else if (currentSection) {
       contentBuffer.push(line);
@@ -405,7 +360,7 @@ function parseAnalysisIntoSections(analysis: string): AnalysisSection[] {
           currentSection = {
             title: 'Overview',
             content: '',
-            icon: '📊',
+            icon: '',
           };
         }
         contentBuffer.push(line);
@@ -419,50 +374,100 @@ function parseAnalysisIntoSections(analysis: string): AnalysisSection[] {
     sections.push(currentSection);
   }
 
-  // Merge Overview and Key Findings
-  const mergedSections: AnalysisSection[] = [];
-  let overviewSection: AnalysisSection | null = null;
+  // Merge and consolidate sections
+  const consolidatedSections: AnalysisSection[] = [];
+  const sectionMap = new Map<string, AnalysisSection>();
   
   for (const section of sections) {
     const lowerTitle = section.title.toLowerCase();
     
+    // Merge Overview and Key Findings
     if (lowerTitle.includes('overview')) {
-      overviewSection = section;
+      if (!sectionMap.has('overview')) {
+        sectionMap.set('overview', { ...section, title: 'Overview', icon: '' });
+      } else {
+        sectionMap.get('overview')!.content += '\n\n' + section.content;
+      }
     } else if (lowerTitle.includes('key finding') || lowerTitle.includes('findings')) {
-      if (overviewSection) {
-        overviewSection.content += '\n\n### Key Findings\n\n' + section.content;
+      if (!sectionMap.has('overview')) {
+        sectionMap.set('overview', { title: 'Overview', content: section.content, icon: '' });
       } else {
-        mergedSections.push(section);
+        sectionMap.get('overview')!.content += '\n\n**Key Findings**\n\n' + section.content;
       }
-    } else if (lowerTitle.includes('action') || lowerTitle.includes('next step')) {
-      // Merge into Recommendations
-      const recommendationsIndex = mergedSections.findIndex(s => 
-        s.title.toLowerCase().includes('recommendation')
-      );
-      if (recommendationsIndex >= 0) {
-        mergedSections[recommendationsIndex].content += '\n\n' + section.content;
+    }
+    // Consolidate Business Impact
+    else if (lowerTitle.includes('business impact') || 
+             lowerTitle.includes('revenue leakage') ||
+             lowerTitle.includes('operational inefficiency') ||
+             lowerTitle.includes('strategic blindness') ||
+             lowerTitle.includes('wasted marketing')) {
+      if (!sectionMap.has('business-impact')) {
+        sectionMap.set('business-impact', { title: 'Business Impact', content: '', icon: '' });
+      }
+      if (lowerTitle.includes('business impact')) {
+        sectionMap.get('business-impact')!.content = section.content + '\n\n' + (sectionMap.get('business-impact')!.content || '');
       } else {
-        // Create Recommendations section
-        mergedSections.push({
-          title: 'Recommendations',
-          content: section.content,
-          icon: '✅'
-        });
+        sectionMap.get('business-impact')!.content += '\n\n' + section.content;
       }
-    } else {
-      mergedSections.push(section);
+    }
+    // Consolidate Recommendations
+    else if (lowerTitle.includes('recommendation') || 
+             lowerTitle.includes('action') ||
+             lowerTitle.includes('next step') ||
+             lowerTitle.includes('timeline')) {
+      if (!sectionMap.has('recommendations')) {
+        sectionMap.set('recommendations', { title: 'Recommendations', content: '', icon: '' });
+      }
+      if (lowerTitle.includes('recommendation')) {
+        sectionMap.get('recommendations')!.content = section.content + '\n\n' + (sectionMap.get('recommendations')!.content || '');
+      } else {
+        sectionMap.get('recommendations')!.content += '\n\n' + section.content;
+      }
+    }
+    // Benchmark section
+    else if (lowerTitle.includes('benchmark') || lowerTitle.includes('industry standard')) {
+      if (!sectionMap.has('benchmark')) {
+        sectionMap.set('benchmark', { title: 'Benchmark Against Industry Standards', content: section.content, icon: '' });
+      } else {
+        sectionMap.get('benchmark')!.content += '\n\n' + section.content;
+      }
+    }
+    // Grade section
+    else if (lowerTitle.includes('grade') || lowerTitle.includes('score')) {
+      if (!sectionMap.has('grade')) {
+        sectionMap.set('grade', { title: 'Overall Grade', content: section.content, icon: '' });
+      } else {
+        sectionMap.get('grade')!.content += '\n\n' + section.content;
+      }
+    }
+    // Success Metrics section
+    else if (lowerTitle.includes('success metric') || lowerTitle.includes('metrics to track')) {
+      if (!sectionMap.has('metrics')) {
+        sectionMap.set('metrics', { title: 'Success Metrics to Track', content: section.content, icon: '' });
+      } else {
+        sectionMap.get('metrics')!.content += '\n\n' + section.content;
+      }
+    }
+    // Other sections
+    else {
+      consolidatedSections.push(section);
     }
   }
   
-  if (overviewSection) {
-    mergedSections.unshift(overviewSection);
+  // Add sections in correct order
+  const orderedKeys = ['overview', 'business-impact', 'recommendations', 'benchmark', 'grade', 'metrics'];
+  for (const key of orderedKeys) {
+    const section = sectionMap.get(key);
+    if (section && section.content.trim()) {
+      consolidatedSections.push(section);
+    }
   }
 
-  return mergedSections.filter(s => s.content.length > 0);
+  return consolidatedSections.filter(s => s.content.length > 0);
 }
 
 /**
- * Simple markdown to HTML converter with table support
+ * Professional markdown to HTML converter with table support
  */
 function formatMarkdownToHTML(markdown: string): string {
   let html = markdown;
@@ -478,12 +483,12 @@ function formatMarkdownToHTML(markdown: string): string {
       row.split('|').map(cell => cell.trim()).filter(cell => cell)
     );
 
-    let tableHTML = '<div class="overflow-x-auto my-6"><table class="min-w-full border-collapse" style="border: 1px solid var(--border)">';
+    let tableHTML = '<div class="overflow-x-auto my-8"><table class="min-w-full border-collapse" style="border: 1px solid var(--border)">';
     
     // Header
     tableHTML += '<thead style="background: var(--muted)"><tr>';
     headers.forEach(header => {
-      tableHTML += `<th class="px-4 py-3 text-left font-semibold" style="border: 1px solid var(--border); color: var(--foreground)">${header}</th>`;
+      tableHTML += `<th class="px-6 py-4 text-left font-bold text-sm uppercase tracking-wide" style="border: 1px solid var(--border); color: var(--foreground)">${header}</th>`;
     });
     tableHTML += '</tr></thead>';
 
@@ -491,9 +496,9 @@ function formatMarkdownToHTML(markdown: string): string {
     tableHTML += '<tbody>';
     rows.forEach((row, idx) => {
       const bgColor = idx % 2 === 0 ? 'var(--card)' : 'var(--background)';
-      tableHTML += `<tr style="background: ${bgColor}">`;
+      tableHTML += `<tr style="background: ${bgColor}" class="hover:bg-muted transition-colors">`;
       row.forEach(cell => {
-        tableHTML += `<td class="px-4 py-3" style="border: 1px solid var(--border); color: var(--foreground-light)">${cell}</td>`;
+        tableHTML += `<td class="px-6 py-4" style="border: 1px solid var(--border); color: var(--foreground-light)">${cell}</td>`;
       });
       tableHTML += '</tr>';
     });
@@ -502,24 +507,27 @@ function formatMarkdownToHTML(markdown: string): string {
     return tableHTML;
   });
 
-  // Handle subsection headers (###)
-  html = html.replace(/^###\s+(.+)$/gim, '<h3 class="text-lg font-semibold mt-6 mb-3" style="color: var(--foreground)">$1</h3>');
+  // Handle Timeline sections (Timeline: Within X)
+  html = html.replace(/^(Timeline:\s+Within\s+.+?)$/gim, '<h4 class="text-base font-bold mt-6 mb-3 pb-2 border-b" style="color: var(--primary); border-color: var(--border)">$1</h4>');
 
-  // Handle emoji bullets (📄, 💰, etc.) as subsection markers
-  html = html.replace(/^(📄|💰|🎯|⚠️|✅|🚀)\s+(.+):$/gim, '<h4 class="text-md font-semibold mt-4 mb-2 flex items-center gap-2" style="color: var(--foreground)"><span>$1</span><span>$2</span></h4>');
+  // Handle subsection headers (###)
+  html = html.replace(/^###\s+(.+)$/gim, '<h3 class="text-xl font-bold mt-8 mb-4" style="color: var(--foreground)">$1</h3>');
+
+  // Handle emoji bullets for Business Impact subsections
+  html = html.replace(/^(📄|💰|🎯|⚠️|✅|🚀)\s+(.+?):$/gim, '<h4 class="text-lg font-bold mt-6 mb-3" style="color: var(--foreground)">$2</h4>');
 
   // Bold text with **
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold" style="color: var(--foreground)">$1</strong>');
 
   // Bullet points
-  html = html.replace(/^\* (.+)$/gim, '<li>$1</li>');
-  html = html.replace(/^- (.+)$/gim, '<li>$1</li>');
+  html = html.replace(/^\*\s+(.+)$/gim, '<li class="mb-2">$1</li>');
+  html = html.replace(/^-\s+(.+)$/gim, '<li class="mb-2">$1</li>');
 
   // Numbered lists
-  html = html.replace(/^\d+\.\s+(.+)$/gim, '<li>$1</li>');
+  html = html.replace(/^\d+\.\s+(.+)$/gim, '<li class="mb-2">$1</li>');
 
   // Wrap consecutive list items
-  html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul class="list-disc list-inside space-y-2 my-4 ml-4">$&</ul>');
+  html = html.replace(/(<li class="mb-2">.*<\/li>\n?)+/g, '<ul class="list-disc list-outside space-y-1 my-4 ml-6 text-foreground-light">$&</ul>');
 
   // Paragraphs
   html = html.split('\n\n').map(para => {
@@ -533,7 +541,7 @@ function formatMarkdownToHTML(markdown: string): string {
       return para;
     }
     if (trimmed.length > 0) {
-      return `<p class="mb-4">${trimmed}</p>`;
+      return `<p class="mb-4 leading-relaxed">${trimmed}</p>`;
     }
     return '';
   }).join('');
