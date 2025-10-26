@@ -12,16 +12,16 @@ interface AuditRecord {
 }
 
 export default function HistoryPage() {
-  const { user, loading } = useAuth();
+  const { user, isLoading } = useAuth();
   const router = useRouter();
   const [auditHistory, setAuditHistory] = useState<AuditRecord[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!isLoading && !user) {
       router.push('/auth');
     }
-  }, [user, loading, router]);
+  }, [user, isLoading, router]);
 
   useEffect(() => {
     // Simulated audit history - replace with actual API call
@@ -64,11 +64,10 @@ export default function HistoryPage() {
     }
   }, [user]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
         <div className="text-center">
-          <div className="mb-4 text-4xl">📋</div>
           <p style={{ color: 'var(--foreground)' }}>Loading history...</p>
         </div>
       </div>

@@ -24,11 +24,11 @@ export default function LoadingState({ message = 'Loading...' }: LoadingStatePro
             <span>Connecting to your HubSpot account</span>
           </div>
           <div className="flex items-center justify-center gap-2">
-            <div className="w-2 h-2 bg-primary rounded-full animate-pulse delay-100"></div>
+            <div className="w-2 h-2 bg-primary rounded-full animate-pulse-delay-100"></div>
             <span>Analyzing your data for opportunities</span>
           </div>
           <div className="flex items-center justify-center gap-2">
-            <div className="w-2 h-2 bg-primary rounded-full animate-pulse delay-200"></div>
+            <div className="w-2 h-2 bg-primary rounded-full animate-pulse-delay-200"></div>
             <span>Preparing your personalized recommendations</span>
           </div>
         </div>

@@ -79,9 +79,6 @@ export default function MetricCard({ metric }: MetricCardProps) {
         {severity && (
           <div className="mt-3 pt-2 border-t border-border">
             <span className={`text-xs font-medium ${textColor}`}>
-              {severity === 'good' && '✓ '}
-              {severity === 'warning' && '⚠ '}
-              {severity === 'critical' && '⚡ '}
               {severityLabels[severity]}
             </span>
           </div>
